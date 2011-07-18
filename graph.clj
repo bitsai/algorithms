@@ -1,19 +1,21 @@
 (ns graph)
 
-(defn bfs [adj-list start f]
+(defn bfs [graph start f]
   (loop [visited #{}
          [n & ns] [start]]
     (when n
       (let [new-visited (conj visited n)
-            new-queue (remove new-visited (concat ns (adj-list n)))]
-        (f n)
+            neighbors ((:neighbors graph) n)
+            new-queue (remove new-visited (concat ns neighbors))]
+        (f n graph)
         (recur new-visited new-queue)))))
 
-(defn dfs [adj-list start f]
+(defn dfs [graph start f]
   (loop [visited #{}
          [n & ns] [start]]
     (when n
       (let [new-visited (conj visited n)
-            new-stack (remove new-visited (concat (adj-list n) ns))]
-        (f n)
+            neighbors ((:neighbors graph) n)
+            new-stack (remove new-visited (concat neighbors ns))]
+        (f n graph)
         (recur new-visited new-stack)))))
