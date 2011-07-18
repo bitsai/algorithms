@@ -1,7 +1,8 @@
 (ns tests
   (:use [graph])
   (:use [map-reduce])
-  (:use [sort]))
+  (:use [sort])
+  (:use [tree]))
 
 ;; Test graph functions
 (def graph {:neighbors {1 [2 5 6]
@@ -11,8 +12,10 @@
                         5 [1 2 4]
                         6 [1]}})
 
-(bfs graph 1 (fn [x g] (println x)))
-(dfs graph 1 (fn [x g] (println x)))
+(let [s (with-out-str (bfs graph 1 (fn [x _] (print x))))]
+  (println s))
+(let [s (with-out-str (dfs graph 1 (fn [x _] (print x))))]
+  (println s))
 
 ;; Test map-reduce functions
 (defn slow-count [coll]
@@ -24,9 +27,27 @@
           (recur (rest xs)
                  (inc cnt))))))
 
-(time (slow-count (range 100)))
-(time (map-reduce slow-count + (range 100)))
+(time (println (slow-count (range 100))))
+(time (println (map-reduce slow-count + (range 100))))
 
 ;; Test sort functions
 (println (merge-sort (shuffle (range 10))))
 (println (quick-sort (shuffle (range 10))))
+
+;; Test tree functions
+(def tree {:neighbors '{B [A D]
+                        D [C E]
+                        F [B G]
+                        G [nil I]
+                        I [H]}})
+
+(let [s (with-out-str (bfs tree 'F (fn [x _] (print x))))]
+  (println s))
+(let [s (with-out-str (dfs tree 'F (fn [x _] (print x))))]
+  (println s))
+(let [s (with-out-str (pre-order tree 'F (fn [x _] (print x))))]
+  (println s))
+(let [s (with-out-str (in-order tree 'F (fn [x _] (print x))))]
+  (println s))
+(let [s (with-out-str (post-order tree 'F (fn [x _] (print x))))]
+  (println s))
