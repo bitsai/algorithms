@@ -1,5 +1,6 @@
 (ns tests
   (:use [graph])
+  (:use [hash-table])
   (:use [map-reduce])
   (:use [sort])
   (:use [tree]))
@@ -16,6 +17,15 @@
   (println s))
 (let [s (with-out-str (dfs graph 1 (fn [x _] (print x))))]
   (println s))
+
+;; Test hash-table functions
+(def *table* (atom (hash-table)))
+
+(println (search @*table* 1))
+(swap! *table* insert 1)
+(println (search @*table* 1))
+(swap! *table* delete 1)
+(println (search @*table* 1))
 
 ;; Test map-reduce functions
 (defn slow-count [coll]
