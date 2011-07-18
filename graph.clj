@@ -5,7 +5,7 @@
          [n & ns] [start]]
     (when n
       (let [new-visited (conj visited n)
-            neighbors ((:neighbors graph) n)
+            neighbors (remove nil? ((:neighbors graph) n))
             new-queue (remove new-visited (concat ns neighbors))]
         (f n graph)
         (recur new-visited new-queue)))))
@@ -15,7 +15,7 @@
          [n & ns] [start]]
     (when n
       (let [new-visited (conj visited n)
-            neighbors ((:neighbors graph) n)
+            neighbors (remove nil? ((:neighbors graph) n))
             new-stack (remove new-visited (concat neighbors ns))]
         (f n graph)
         (recur new-visited new-stack)))))
