@@ -1,6 +1,7 @@
 (ns tests
   (:use [graph])
   (:use [hash-table])
+  (:use [levenshtein])
   (:use [map-reduce])
   (:use [sort])
   (:use [tree]))
@@ -26,6 +27,11 @@
 (println (search @*table* 1))
 (swap! *table* delete 1)
 (println (search @*table* 1))
+
+;; Test levenshtein functions
+(let [a (apply str (repeat 300 "kitten"))
+      b (apply str (repeat 300 "sitting"))]
+  (time (println (levenshtein a b))))
 
 ;; Test map-reduce functions
 (defn slow-count [coll]
