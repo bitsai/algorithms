@@ -1,39 +1,46 @@
 (ns tests
-  (:use [graph])
-  (:use [hash-table])
-  (:use [levenshtein])
-  (:use [map-reduce])
-  (:use [sort])
-  (:use [tree]))
+  (:require [graph]
+            [hash-table]
+            [levenshtein]
+            [map-reduce]
+            [sort]
+            [tree]
+            [trie])
+  (:use [clojure.test]))
 
-;; Test graph functions
-(def graph {:neighbors {1 [2 5 6]
-                        2 [1 3 5]
-                        3 [2 4]
-                        4 [3 5]
-                        5 [1 2 4]
-                        6 [1]}})
+;; graph
+(def g {:neighbors {1 [2 5 6]
+                    2 [1 3 5]
+                    3 [2 4]
+                    4 [3 5]
+                    5 [1 2 4]
+                    6 [1]}})
 
-(let [s (with-out-str (bfs graph 1 (fn [x _] (print x))))]
-  (println s))
-(let [s (with-out-str (dfs graph 1 (fn [x _] (print x))))]
-  (println s))
+(deftest graph-bfs
+  (let [s (with-out-str (graph/bfs g 1 (fn [x _] (print x))))]
+    (is (= "125634" s))))
 
-;; Test hash-table functions
-(def *table* (atom (hash-table)))
+(deftest graph-dfs
+  (let [s (with-out-str (graph/dfs g 1 (fn [x _] (print x))))]
+    (is (= "123456" s))))
 
-(println (search @*table* 1))
-(swap! *table* insert 1)
-(println (search @*table* 1))
-(swap! *table* delete 1)
-(println (search @*table* 1))
+;; hash table
+(def ht (atom (hash-table/make-table)))
 
-;; Test levenshtein functions
-(let [a (apply str (repeat 300 "kitten"))
-      b (apply str (repeat 300 "sitting"))]
-  (time (println (levenshtein a b))))
+(deftest hash-table
+  (is (nil? (hash-table/search @ht 1)))
+  (swap! ht hash-table/insert 1)
+  (is (= 1 (hash-table/search @ht 1)))
+  (swap! ht hash-table/delete 1)
+  (is (nil? (hash-table/search @ht 1))))
 
-;; Test map-reduce functions
+;; Levenshtein distance
+(deftest levenshtein
+  (let [a (apply str (repeat 300 "kitten"))
+        b (apply str (repeat 300 "sitting"))]
+    (is (= 900 (time (levenshtein/levenshtein a b))))))
+
+;; Map-Reduce
 (defn slow-count [coll]
   (loop [xs coll
          cnt 0]
@@ -43,27 +50,56 @@
           (recur (rest xs)
                  (inc cnt))))))
 
-(time (println (slow-count (range 100))))
-(time (println (map-reduce slow-count + (range 100))))
+(deftest map-reduce
+  (is (= 100 (time (slow-count (range 100)))))
+  (is (= 100 (time (map-reduce/map-reduce slow-count + (range 100)))))
+  (shutdown-agents))
 
-;; Test sort functions
-(println (merge-sort (shuffle (range 10))))
-(println (quick-sort (shuffle (range 10))))
+;; sort
+(deftest merge-sort
+  (is (= (range 10) (sort/merge-sort (shuffle (range 10))))))
 
-;; Test tree functions
-(def tree {:neighbors '{B [A D]
-                        D [C E]
-                        F [B G]
-                        G [nil I]
-                        I [H]}})
+(deftest quick-sort
+  (is (= (range 10) (sort/quick-sort (shuffle (range 10))))))
 
-(let [s (with-out-str (bfs tree 'F (fn [x _] (print x))))]
-  (println s))
-(let [s (with-out-str (dfs tree 'F (fn [x _] (print x))))]
-  (println s))
-(let [s (with-out-str (pre-order tree 'F (fn [x _] (print x))))]
-  (println s))
-(let [s (with-out-str (in-order tree 'F (fn [x _] (print x))))]
-  (println s))
-(let [s (with-out-str (post-order tree 'F (fn [x _] (print x))))]
-  (println s))
+;; tree
+(def t1 {:neighbors '{B [A D]
+                      D [C E]
+                      F [B G]
+                      G [nil I]
+                      I [H nil]}})
+
+(deftest tree-bfs
+  (let [s (with-out-str (graph/bfs t1 'F (fn [x _] (print x))))]
+    (is (= "FBGADICEH" s))))
+
+(deftest tree-dfs
+  (let [s (with-out-str (graph/dfs t1 'F (fn [x _] (print x))))]
+    (is (= "FBADCEGIH" s))))
+
+(deftest pre-order
+  (let [s (with-out-str (tree/pre-order t1 'F (fn [x _] (print x))))]
+    (is (= "FBADCEGIH" s))))
+
+(deftest in-order
+  (let [s (with-out-str (tree/in-order t1 'F (fn [x _] (print x))))]
+    (is (= "ABCDEFGHI" s))))
+
+(deftest post-order
+  (let [s (with-out-str (tree/post-order t1 'F (fn [x _] (print x))))]
+    (is (= "ACEDBHIGF" s))))
+
+;; trie
+(def t2 (trie/make-trie "the" "their" "there" "was" "when"))
+
+(deftest trie
+  (is (true? (trie/in-trie? t2 "the")))
+  (is (true? (trie/in-trie? t2 "their")))
+  (is (true? (trie/in-trie? t2 "there")))
+  (is (true? (trie/in-trie? t2 "was")))
+  (is (true? (trie/in-trie? t2 "when")))
+  (is (false? (trie/in-trie? t2 "")))
+  (is (false? (trie/in-trie? t2 "her")))
+  (is (false? (trie/in-trie? t2 "whent"))))
+
+(run-tests)

@@ -2,7 +2,7 @@
 
 (def m 256)
 
-(defn hash-table []
+(defn make-table []
   (vec (repeat m '())))
 
 (defn hash-key [x]
